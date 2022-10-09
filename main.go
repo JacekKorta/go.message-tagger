@@ -70,13 +70,13 @@ func main() {
 	failOnError(err, "Failed to declare a queue")
 
 	messages, err := chConsume.Consume(
-		queue.Name,         // queue
-		"TestConsumerName", // consumer
-		true,               // auto-ack
-		false,              // exclusive
-		false,              // no-local
-		false,              // no-wait
-		nil,                // args
+		queue.Name, // queue
+		"Tagger",   // consumer
+		true,       // auto-ack
+		false,      // exclusive
+		false,      // no-local
+		false,      // no-wait
+		nil,        // args
 	)
 	failOnError(err, "Failed to register a consumer")
 
@@ -91,7 +91,7 @@ func main() {
 			if len(msg.Reasons) > 0 {
 				go publishMessage(ctx, string(d.Body), ch, fmt.Sprintf("%v", msg.Reasons), *settings)
 			}
-			
+
 		}
 	}()
 

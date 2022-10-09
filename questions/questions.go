@@ -16,7 +16,7 @@ type Question struct {
 	Link             string   `json:"link"`
 	Title            string   `json:"title"`
 	Body             string   `json:"body"`
-	Reasons []string
+	Reasons []string `json:"reasons"`
 }
 
 func (q *Question) HasTag(wantedTag string) bool {
