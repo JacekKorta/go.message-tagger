@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	// "encoding/json"
-	// "fmt"
+	"encoding/json"
+	"fmt"
 	"log"
-	// "os"
+	"message-tagger/questions"
+	"message-tagger/settings"
 	"sync"
 	"time"
-
-	"message-tagger/settings"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -62,22 +61,22 @@ func main() {
 	//Consumer part
 	queue, err := ch.QueueDeclarePassive(
 		settings.Rabbit.InputQueue, // name
-		true,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+		true,                       // durable
+		false,                      // delete when unused
+		false,                      // exclusive
+		false,                      // no-wait
+		nil,                        // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
 
 	messages, err := chConsume.Consume(
-		queue.Name, // queue
-		"TestConsumerName",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
+		queue.Name,         // queue
+		"TestConsumerName", // consumer
+		true,               // auto-ack
+		false,              // exclusive
+		false,              // no-local
+		false,              // no-wait
+		nil,                // args
 	)
 	failOnError(err, "Failed to register a consumer")
 
@@ -85,14 +84,19 @@ func main() {
 
 	go func() {
 		for d := range messages {
-		  log.Printf("Received a message: %s", d.Body)
-		  wg.Add(1)
-		  go publishMessage(ctx, string(d.Body), ch, string(d.Body), *settings)
+			msg := &questions.Question{}
+			json.Unmarshal(d.Body, msg)
+			wg.Add(1)
+			msg.Analize(settings)
+			if len(msg.Reasons) > 0 {
+				go publishMessage(ctx, string(d.Body), ch, fmt.Sprintf("%v", msg.Reasons), *settings)
+			}
+			
 		}
-	  }()
-	  
-	  log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	  <-forever
+	}()
+
+	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	<-forever
 
 	wg.Wait()
 }
