@@ -5,21 +5,25 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 type Settings struct {
-	Rabbit RabbitMQSettings
+	Rabbit  RabbitMQSettings
+	BareTag string
+	DesirableTag string
+	WarningStrings []string
 }
 
 type RabbitMQSettings struct {
-	User string
-	Password string
-	Host string
-	Port int
-	Vhost string
-	Exhange string
+	User       string
+	Password   string
+	Host       string
+	Port       int
+	Vhost      string
+	Exhange    string
 	RoutingKey string
 	InputQueue string
 }
@@ -38,17 +42,20 @@ func (s *Settings) GetSettings() *Settings {
 	s.Rabbit.Exhange = os.Getenv("RABBITMQ_EXCHANGE")
 	s.Rabbit.RoutingKey = os.Getenv("RABBITMQ_ROUTING_KEY")
 	s.Rabbit.InputQueue = os.Getenv("RABBITMQ_INPUT_QUEUE")
+	s.BareTag = os.Getenv("BARE_TAG")
+	s.DesirableTag = os.Getenv("DESIRABLE_TAG")
+	s.WarningStrings = strings.Split(os.Getenv("WARNING_STRINGS"), "|")
 	return s
 
 }
 
 func (s *Settings) GetRabbitmqUrl() string {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%d%s",
-	s.Rabbit.User,
-	s.Rabbit.Password,
-	s.Rabbit.Host,
-	s.Rabbit.Port,
-	s.Rabbit.Vhost,
+		s.Rabbit.User,
+		s.Rabbit.Password,
+		s.Rabbit.Host,
+		s.Rabbit.Port,
+		s.Rabbit.Vhost,
 	)
 	return url
 }
@@ -64,6 +71,6 @@ func (s *Settings) StrToIntParseOrGetDefault(envName string, defaultValue int) i
 	if err != nil {
 		log.Println("Can't use variable. Using default.")
 		return defaultValue
-	} 
+	}
 	return intValue
 }
