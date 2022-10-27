@@ -14,7 +14,6 @@ RUN go build -o /message-tagger-bin
 
 FROM alpine:latest
 
-WORKDIR /app
 COPY --from=build /message-tagger-bin /message-tagger-bin
 
 ENTRYPOINT [ "/message-tagger-bin" ]
